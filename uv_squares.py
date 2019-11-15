@@ -17,7 +17,7 @@ bl_info = {
     "name": "UV Squares",
     "description": "UV Editor tool for reshaping selection to grid.",
     "author": "Reslav Hollos",
-    "version": (1, 12, 0),
+    "version": (1, 12, 1),
     "blender": (2, 80, 0),
     "location": "UV Editor > N Panel > UV Squares",
     "category": "UV",
@@ -136,7 +136,8 @@ def main1(obj, context, operator, square, snapToClosest):
             len(islands) > 1 or
             targetFace.select is False or
             len(targetFace.verts) is not 4):
-                targetFace = island.pop()
+                targetFace = next(iter(island))
+        
         main2(targetFace, island)
 
     if noEdge is False:
