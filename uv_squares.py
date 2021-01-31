@@ -1,5 +1,5 @@
 #    <Uv Squares, Blender addon for reshaping UV vertices to grid.>
-#    Copyright (C) <2019> <Reslav Hollos>
+#    Copyright (C) <2020> <Reslav Hollos>
 #    This program is free software: you can redistribute it and/or modify
 #    it under the terms of the GNU General Public License as published by
 #    the Free Software Foundation, either version 3 of the License, or
@@ -17,7 +17,7 @@ bl_info = {
     "name": "UV Squares",
     "description": "UV Editor tool for reshaping selection to grid.",
     "author": "Reslav Hollos",
-    "version": (1, 12, 1),
+    "version": (1, 14, 0),
     "blender": (2, 80, 0),
     "location": "UV Editor > N Panel > UV Squares",
     "category": "UV",
@@ -28,7 +28,7 @@ import bpy
 import bmesh
 from collections import defaultdict
 from math import radians, hypot
-import time
+from timeit import default_timer as timer
 
 precision = 3
 
@@ -43,8 +43,11 @@ def main(context, operator, square = False, snapToClosest = False):
         # context.scene.tool_settings.use_uv_select_sync = False
         return
 
+    selected_objects = context.selected_objects
+    if (context.edit_object not in selected_objects):
+        selected_objects.append(context.edit_object)
 
-    for obj in context.selected_objects:
+    for obj in selected_objects:
         if (obj.type == "MESH"):
             main1(obj, context, operator, square, snapToClosest)
 
@@ -54,7 +57,7 @@ def main1(obj, context, operator, square, snapToClosest):
         # context.scene.tool_settings.use_uv_select_sync = False
         return
 
-    startTime = time.clock()
+    startTime = timer()
     me = obj.data
     bm = bmesh.from_edit_mesh(me)
     uv_layer = bm.loops.layers.uv.verify()
@@ -412,7 +415,10 @@ def FollowActiveUV(operator, me, f_act, faces, EXTEND_MODE = 'LENGTH_AVERAGE'):
         l_b_uv = [l[uv_act].uv for l in l_b]
 
         if EXTEND_MODE == 'LENGTH_AVERAGE':
-            fac = edge_lengths[l_b[2].edge.index][0] / edge_lengths[l_a[1].edge.index][0]
+            try:
+                fac = edge_lengths[l_b[2].edge.index][0] / edge_lengths[l_a[1].edge.index][0]
+            except ZeroDivisionError:
+                fac = 1.0
         elif EXTEND_MODE == 'LENGTH':
             a0, b0, c0 = l_a[3].vert.co, l_a[0].vert.co, l_b[3].vert.co
             a1, b1, c1 = l_a[2].vert.co, l_a[1].vert.co, l_b[2].vert.co
@@ -479,7 +485,7 @@ def SuccessFinished(me, startTime):
     #use for backtrack of steps 
     #bpy.ops.ed.undo_push()
     bmesh.update_edit_mesh(me)
-    elapsed = round(time.clock()-startTime, 2)
+    elapsed = round(timer()-startTime, 2)
     #if (elapsed >= 0.05): operator.report({'INFO'}, "UvSquares finished, elapsed:", elapsed, "s.")
     if (elapsed >= 0.05): print("UvSquares finished, elapsed:", elapsed, "s.")
     return
@@ -739,7 +745,7 @@ def AreVertsQuasiEqual(v1, v2, allowedError = 0.00001):
     return False
 
 def RipUvFaces(context, operator):
-    startTime = time.clock()
+    startTime = timer()
     
     obj = context.active_object
     me = obj.data
@@ -789,7 +795,7 @@ def RipUvFaces(context, operator):
     return SuccessFinished(me, startTime)
 
 def JoinUvFaces(context, operator):
-    startTime = time.clock()
+    startTime = timer()
     
     obj = context.active_object
     me = obj.data
@@ -988,17 +994,18 @@ def register():
     #handle the keymap
     wm = bpy.context.window_manager
 
-    km = wm.keyconfigs.addon.keymaps.new(name='UV Editor', space_type='EMPTY')
-    kmi = km.keymap_items.new(UV_PT_UvSquaresByShape.bl_idname, 'E', 'PRESS', alt=True)
-    addon_keymaps.append((km, kmi))
+    if (wm.keyconfigs.addon):
+        km = wm.keyconfigs.addon.keymaps.new(name='UV Editor', space_type='EMPTY')
+        kmi = km.keymap_items.new(UV_PT_UvSquaresByShape.bl_idname, 'E', 'PRESS', alt=True)
+        addon_keymaps.append((km, kmi))
 
-    km = wm.keyconfigs.addon.keymaps.new(name='UV Editor', space_type='EMPTY')
-    kmi = km.keymap_items.new(UV_PT_RipFaces.bl_idname, 'V', 'PRESS', alt=True)
-    addon_keymaps.append((km, kmi))
+        km = wm.keyconfigs.addon.keymaps.new(name='UV Editor', space_type='EMPTY')
+        kmi = km.keymap_items.new(UV_PT_RipFaces.bl_idname, 'V', 'PRESS', alt=True)
+        addon_keymaps.append((km, kmi))
 
-    km = wm.keyconfigs.addon.keymaps.new(name='UV Editor', space_type='EMPTY')
-    kmi = km.keymap_items.new(UV_PT_JoinFaces.bl_idname, 'V', 'PRESS', alt=True, shift=True)
-    addon_keymaps.append((km, kmi))
+        km = wm.keyconfigs.addon.keymaps.new(name='UV Editor', space_type='EMPTY')
+        kmi = km.keymap_items.new(UV_PT_JoinFaces.bl_idname, 'V', 'PRESS', alt=True, shift=True)
+        addon_keymaps.append((km, kmi))
 
 def unregister():
     bpy.utils.unregister_class(UV_PT_UvSquaresPanel)

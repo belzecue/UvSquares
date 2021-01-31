@@ -1,5 +1,5 @@
 #    <Uv Squares, Blender addon for reshaping UV vertices to grid.>
-#    Copyright (C) <2019> <Reslav Hollos>
+#    Copyright (C) <2020> <Reslav Hollos>
 #    This program is free software: you can redistribute it and/or modify
 #    it under the terms of the GNU General Public License as published by
 #    the Free Software Foundation, either version 3 of the License, or
@@ -17,7 +17,7 @@ bl_info = {
     "name": "UV Squares",
     "description": "UV Editor tool for reshaping selection to grid.",
     "author": "Reslav Hollos",
-    "version": (1, 12, 1),
+    "version": (1, 14, 0),
     "blender": (2, 80, 0),
     "location": "UV Editor > N Panel > UV Squares",
     "category": "UV",
