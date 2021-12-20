@@ -17,7 +17,7 @@ bl_info = {
     "name": "UV Squares",
     "description": "UV Editor tool for reshaping selection to grid.",
     "author": "Reslav Hollos",
-    "version": (1, 14, 0),
+    "version": (1, 14, 1),
     "blender": (2, 80, 0),
     "location": "UV Editor > N Panel > UV Squares",
     "category": "UV",
@@ -477,7 +477,7 @@ def FollowActiveUV(operator, me, f_act, faces, EXTEND_MODE = 'LENGTH_AVERAGE'):
     for f_triple in walk_face(f_act):
         apply_uv(*f_triple)
 
-    bmesh.update_edit_mesh(me, False)
+    bmesh.update_edit_mesh(me, loop_triangles=False)
 
 '''----------------------------------'''
 
